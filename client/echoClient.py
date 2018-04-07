@@ -57,10 +57,10 @@ class Client:
     def doSend(self):
         try:
             message = "PUT|testFileFromClient.txt|"
-            self.numSent += self.ssock.send(message)
-            with open("testFileFromClient.txt", 'rb') as file:
+            with open("client/testFileFromClient.txt", 'rb') as file:
                 for line in file:
-                    self.numSent += self.ssock.send(line)
+                    message += line
+            self.numSent += self.ssock.send(message)
         except Exception as e:
             self.errorAbort("can't send: %s" % e)
             return

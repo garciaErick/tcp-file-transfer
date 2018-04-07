@@ -32,6 +32,12 @@ class Fwd:
     def __init__(self, conn, inSock, outSock, bufCap = 1000):
         self.conn, self.inSock, self.outSock, self.bufCap = conn, inSock, outSock, bufCap
         self.inClosed, self.buf = 0, ""
+
+        self.protocol = ""
+        self. fileName = ""
+        self.contents = ""
+        self.counter = 0
+
     def checkRead(self):
         if len(self.buf) < self.bufCap and not self.inClosed:
             return self.inSock
@@ -45,26 +51,27 @@ class Fwd:
     def doRecv(self):
         b = ""
         contents = ""
-        # raw = open("testFileFromServer.txt", 'w') 
         
         try:
             b = self.inSock.recv(self.bufCap - len(self.buf))
             message = re.split('\|',b)
             if 2 < len(message):
-                protocol = message[0]
-                fileName = message[1]
-                contents = message[2]
-                print("Protocol: " + protocol)
-                print("fileName: " + fileName)
-                print("contents: " + contents)
-            # if message[1] is not None:
-            #     fileName = message[1]
-            # contents = message[2]
-            # print "protocol " +   protocol
-            with open("testFileFromServer.txt", 'a') as file:
-                file.write(contents)
-            # if b[0:3] == "PUT":
-            #     print "It works!!"
+                self.protocol = message[0].lower()
+                self.fileName = message[1]
+                self.contents = message[2]
+                print("Protocol: " + self.protocol)
+                print("fileName: " + self.fileName)
+                print("contents: " + self.contents)
+
+                if self.protocol == "put" and contents != None:
+                    with open("server/testFileFromClient.txt", 'a') as file:
+                        print("contents:")
+                        print(self.counter)
+                        self.counter += 1
+                        file.write(self.contents)
+                elif self.protocol == "get":
+                    self.doSend()
+
         except:
             self.conn.die()
         if len(b):
@@ -74,8 +81,12 @@ class Fwd:
         self.checkDone()
     def doSend(self):
         try:
-            n = self.outSock.send(self.buf)
-            self.buf = self.buf[n:]
+            if self.protocol == "get":
+                n = self.outSock.send(self.contents)
+                self.contents = self.contents[n:]
+            else: 
+                n = self.outSock.send(self.buf)
+                self.buf = self.buf[n:]
         except:
             self.conn.die()
         self.checkDone()
