@@ -48,6 +48,8 @@ class Client:
         self.isDone = 0
         self.clientIndex = clientIndex = nextClientNumber
         nextClientNumber += 1
+        self.protocol = ""
+        self.fileName = ""
         self.ssock = ssock = socket(af, socktype)
         print "New client #%d to %s" % (clientIndex, repr(saddr))
         sockNames[ssock] = "C%d:ToServer" % clientIndex
@@ -56,11 +58,15 @@ class Client:
         liveClients.add(self)
     def doSend(self):
         try:
-            message = "PUT|testFileFromClient.txt|"
-            with open("client/testFileFromClient.txt", 'rb') as file:
-                for line in file:
-                    message += line
-            self.numSent += self.ssock.send(message)
+            self.protocol = "get"
+            self.fileName = "testFileFromClient.txt"
+            message = self.protocol + "|" + self.fileName + "|"
+            if self.protocol == "put":
+                with open("client/testFileFromClient.txt", 'rb') as file:
+                    for line in file:
+                        message += line
+            elif self.protocol == "get":
+                self.numSent += self.ssock.send(message)
         except Exception as e:
             self.errorAbort("can't send: %s" % e)
             return
@@ -69,7 +75,10 @@ class Client:
         self.ssock.shutdown(SHUT_WR)
     def doRecv(self):
         try:
-            n = len(self.ssock.recv(1024))
+            messageFromServer = self.ssock.recv(1024)
+            n = len(messageFromServer)
+            if self.protocol == "get":
+                print(messageFromServer)
         except Exception as e:
             print "doRecv on dead socket"
             print e

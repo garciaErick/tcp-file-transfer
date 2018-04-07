@@ -36,7 +36,6 @@ class Fwd:
         self.protocol = ""
         self. fileName = ""
         self.contents = ""
-        self.counter = 0
 
     def checkRead(self):
         if len(self.buf) < self.bufCap and not self.inClosed:
@@ -65,13 +64,9 @@ class Fwd:
 
                 if self.protocol == "put" and contents != None:
                     with open("server/testFileFromClient.txt", 'a') as file:
-                        print("contents:")
-                        print(self.counter)
-                        self.counter += 1
                         file.write(self.contents)
-                elif self.protocol == "get":
+                elif self.protocol == "get" and contents != None:
                     self.doSend()
-
         except:
             self.conn.die()
         if len(b):
@@ -81,12 +76,9 @@ class Fwd:
         self.checkDone()
     def doSend(self):
         try:
-            if self.protocol == "get":
-                n = self.outSock.send(self.contents)
-                self.contents = self.contents[n:]
-            else: 
-                n = self.outSock.send(self.buf)
-                self.buf = self.buf[n:]
+            n = self.outSock.send(self.buf)
+            self.buf = self.buf[n:]
+
         except:
             self.conn.die()
         self.checkDone()
