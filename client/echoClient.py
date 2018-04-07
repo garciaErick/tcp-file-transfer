@@ -78,7 +78,9 @@ class Client:
             messageFromServer = self.ssock.recv(1024)
             n = len(messageFromServer)
             if self.protocol == "get":
-                print(messageFromServer)
+                 with open("client/testFileFromServer.txt", 'a') as file:
+                        file.write(messageFromServer)
+                        print(messageFromServer)
         except Exception as e:
             print "doRecv on dead socket"
             print e

@@ -66,6 +66,9 @@ class Fwd:
                     with open("server/testFileFromClient.txt", 'a') as file:
                         file.write(self.contents)
                 elif self.protocol == "get" and contents != None:
+                    with open("server/testFileFromServer.txt", 'rb') as file:
+                        for line in file:
+                            self.contents += line
                     self.doSend()
         except:
             self.conn.die()
@@ -78,6 +81,9 @@ class Fwd:
         try:
             n = self.outSock.send(self.buf)
             self.buf = self.buf[n:]
+            if self.protocol == "get":
+                n = self.outSock.send(self.contents)
+                self.buf = self.buf[n:]
 
         except:
             self.conn.die()
