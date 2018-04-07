@@ -1,5 +1,6 @@
 import sys
 import traceback
+import re
 from select import *
 from socket import *
 
@@ -8,7 +9,7 @@ import params
 
 switchesVarDefaults = (
     (('-l', '--listenPort') ,'listenPort', 50001),
-    (('-d', '--debug'), "debug", True), # boolean (set if present)
+    (('-d', '--debug'), "debug", False), # boolean (set if present)
     (('-?', '--usage'), "usage", False) # boolean (set if present)
     )
 
@@ -43,8 +44,27 @@ class Fwd:
             return None
     def doRecv(self):
         b = ""
+        contents = ""
+        # raw = open("testFileFromServer.txt", 'w') 
+        
         try:
             b = self.inSock.recv(self.bufCap - len(self.buf))
+            message = re.split('\|',b)
+            if 2 < len(message):
+                protocol = message[0]
+                fileName = message[1]
+                contents = message[2]
+                print("Protocol: " + protocol)
+                print("fileName: " + fileName)
+                print("contents: " + contents)
+            # if message[1] is not None:
+            #     fileName = message[1]
+            # contents = message[2]
+            # print "protocol " +   protocol
+            with open("testFileFromServer.txt", 'a') as file:
+                file.write(contents)
+            # if b[0:3] == "PUT":
+            #     print "It works!!"
         except:
             self.conn.die()
         if len(b):
@@ -128,6 +148,9 @@ class Listener:
         return None
     def checkErr(self):
         return self.lsock
+
+def put_method(file_name):
+    return
         
 
 l = Listener(("0.0.0.0", listenPort))

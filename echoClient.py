@@ -9,8 +9,8 @@ import params
 
 switchesVarDefaults = (
     (('-s', '--server'), 'server', "127.0.0.1:50000"),
-    (('-n', '--numClients'), 'numClients', "4"),
-    (('-d', '--debug'), "debug", True), # boolean (set if present)
+    (('-n', '--numClients'), 'numClients', "2"),
+    (('-d', '--debug'), "debug", False), # boolean (set if present)
     (('-?', '--usage'), "usage", False) # boolean (set if present)
     )
 
@@ -56,13 +56,17 @@ class Client:
         liveClients.add(self)
     def doSend(self):
         try:
-            self.numSent += self.ssock.send("a"*(2))
+            message = "PUT|testFileFromClient.txt|"
+            self.numSent += self.ssock.send(message)
+            with open("testFileFromClient.txt", 'rb') as file:
+                for line in file:
+                    self.numSent += self.ssock.send(line)
         except Exception as e:
             self.errorAbort("can't send: %s" % e)
             return
-        if random.randrange(0,200) == 0:
-            self.allSent = 1
-            self.ssock.shutdown(SHUT_WR)
+        # if random.randrange(0,200) == 0:
+        self.allSent = 1
+        self.ssock.shutdown(SHUT_WR)
     def doRecv(self):
         try:
             n = len(self.ssock.recv(1024))
@@ -140,6 +144,7 @@ while len(liveClients):
     for sock in wset:
         wmap[sock].doSend()
 
+
 numFailed = 0
 for client in deadClients:
     err = client.error
@@ -147,4 +152,3 @@ for client in deadClients:
     if err:
         numFailed += 1
 print "%d Clients failed." % numFailed
-
