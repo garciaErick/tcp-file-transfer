@@ -65,8 +65,7 @@ class Client:
                 with open("client/testFileFromClient.txt", 'rb') as file:
                     for line in file:
                         message += line
-            elif self.protocol == "get":
-                self.numSent += self.ssock.send(message)
+            self.numSent += self.ssock.send(message)
         except Exception as e:
             self.errorAbort("can't send: %s" % e)
             return
@@ -77,7 +76,7 @@ class Client:
         try:
             messageFromServer = self.ssock.recv(1024)
             n = len(messageFromServer)
-            if self.protocol == "get":
+            if self.protocol == "get" and messageFromServer != None:
                  with open("client/testFileFromServer.txt", 'a') as file:
                         file.write(messageFromServer)
                         print(messageFromServer)
@@ -87,16 +86,19 @@ class Client:
             self.done()
             return
         self.numRecv += n
-        if self.numRecv > self.numSent: 
+        if self.numRecv > self.numSent and self.protocol == "put": 
+            print("inside put")
             self.errorAbort("sent=%d < recd=%d" %  (self.numSent, self.numRecv))
         if n != 0:
             return
         if debug: print "client %d: zero length read" % self.clientIndex
-        # zero length read (done)
         if self.numRecv == self.numSent:
             self.done()
         else:
-            self.errorAbort("sent=%d but recd=%d" %  (self.numSent, self.numRecv))
+            if self.protocol == "put":
+                self.errorAbort("sent=%d but recd=%d" %  (self.numSent, self.numRecv))
+            elif self.protocol == "get":
+                self.done()
     def doErr(self, msg=""):
         error("socket error")
     def checkWrite(self):
@@ -112,7 +114,10 @@ class Client:
     def done(self):
         self.isDone = 1
         self.allSent =1
-        if self.numSent != self.numRecv: self.error = 1
+        if self.numSent != self.numRecv and self.protocol == "put": 
+            self.error = 1
+        elif self.protocol == "get":
+            pass
         try:
             self.ssock(close)
         except:

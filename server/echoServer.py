@@ -69,7 +69,6 @@ class Fwd:
                     with open("server/testFileFromServer.txt", 'rb') as file:
                         for line in file:
                             self.contents += line
-                    self.doSend()
         except:
             self.conn.die()
         if len(b):
@@ -79,9 +78,11 @@ class Fwd:
         self.checkDone()
     def doSend(self):
         try:
-            n = self.outSock.send(self.buf)
-            self.buf = self.buf[n:]
-            if self.protocol == "get":
+            if self.protocol == "put" and self.contents != None:
+                n = self.outSock.send(self.buf)
+                self.buf = self.buf[n:]
+            if self.protocol == "get" and self.contents != None:
+                print("Contents" + self.contents)
                 n = self.outSock.send(self.contents)
                 self.buf = self.buf[n:]
 
