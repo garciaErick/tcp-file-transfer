@@ -52,37 +52,37 @@ class Fwd:
         contents = ""
         
         try:
-            b = self.inSock.recv(self.bufCap - len(self.buf))
-            message = re.split('\|',b)
+            while ("<EOM>" not in b):
+                b += self.inSock.recv(self.bufCap - len(self.buf))
+            
+            message = re.sub("<EOM>", "", b)
+            message = re.split('\|', message)
             if 2 < len(message):
                 self.protocol = message[0].lower()
                 self.fileName = message[1]
                 self.contents = message[2]
-                print("Protocol: " + self.protocol)
-                print("fileName: " + self.fileName)
-                print("contents: " + self.contents)
 
-                if self.protocol == "put" and contents != None:
+
+                if self.protocol == "put" and self.contents != None:
                     with open("server/testFileFromClient.txt", 'a') as file:
                         file.write(self.contents)
-                elif self.protocol == "get" and contents != None:
+                elif self.protocol == "get" and self.contents != None:
                     with open("server/testFileFromServer.txt", 'rb') as file:
                         for line in file:
                             self.contents += line
         except:
             self.conn.die()
-        if len(b):
-            self.buf += b
-        else:
-            self.inClosed = 1
+
+        self.buf = b
+        self.inClosed = 1
         self.checkDone()
+
     def doSend(self):
         try:
             if self.protocol == "put" and self.contents != None:
                 n = self.outSock.send(self.buf)
                 self.buf = self.buf[n:]
             if self.protocol == "get" and self.contents != None:
-                print("Contents" + self.contents)
                 n = self.outSock.send(self.contents)
                 self.buf = self.buf[n:]
 
@@ -90,11 +90,14 @@ class Fwd:
             self.conn.die()
         self.checkDone()
     def checkDone(self):
+        print(self.buf)
+
         if len(self.buf) == 0 and self.inClosed:
             try:
                 self.outSock.shutdown(SHUT_WR)
             except:
                 pass
+
             self.conn.fwdDone(self)
             
     

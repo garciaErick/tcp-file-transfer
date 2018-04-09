@@ -11,12 +11,15 @@ switchesVarDefaults = (
     (('-s', '--server'), 'server', "127.0.0.1:50000"),
     (('-n', '--numClients'), 'numClients', "2"),
     (('-d', '--debug'), "debug", False), # boolean (set if present)
-    (('-?', '--usage'), "usage", False) # boolean (set if present)
+    (('-?', '-h', '--usage'), "usage", False), # boolean (set if present)
+    (('-r', '-request'), "clientRequests", "PUT|testFileFromClient.txt GET|testFileFromServer.txt"), # boolean (set if present)
     )
 
 paramMap = params.parseParams(switchesVarDefaults)
 server, usage, debug = paramMap["server"], paramMap["usage"], paramMap["debug"]
 numClients = int(paramMap["numClients"])
+clientRequests = paramMap["clientRequests"]
+clientRequests = clientRequests.split(" ")
 
 
 if usage:
@@ -38,7 +41,7 @@ nextClientNumber = 0     # each client is assigned a unique id
 liveClients, deadClients = set(), set()
 
 class Client:
-    def __init__(self, af, socktype, saddr):
+    def __init__(self, af, socktype, saddr, request):
         global nextClientNumber
         global liveClients, deadClients
         self.saddr = saddr # addresses
@@ -48,28 +51,39 @@ class Client:
         self.isDone = 0
         self.clientIndex = clientIndex = nextClientNumber
         nextClientNumber += 1
+        self.request = request
         self.protocol = ""
         self.fileName = ""
         self.ssock = ssock = socket(af, socktype)
+        self.message = ""
         print "New client #%d to %s" % (clientIndex, repr(saddr))
         sockNames[ssock] = "C%d:ToServer" % clientIndex
         ssock.setblocking(False)
         ssock.connect_ex(saddr)
         liveClients.add(self)
+
+    def parseClientRequest(self):
+        self.request = re.split('\|', self.request)
+
+        if 1 < len(self.request):
+            self.protocol = self.request[0].lower()
+            self.fileName = self.request[1]
+
+        self.message = self.protocol + "|" + self.fileName + "|"
+
     def doSend(self):
         try:
-            self.protocol = "get"
-            self.fileName = "testFileFromClient.txt"
-            message = self.protocol + "|" + self.fileName + "|"
+            self.parseClientRequest()
             if self.protocol == "put":
                 with open("client/testFileFromClient.txt", 'rb') as file:
                     for line in file:
-                        message += line
-            self.numSent += self.ssock.send(message)
+                        self.message += line
+            self.message += "<EOM>"
+            self.numSent += self.ssock.send(self.message)
+
         except Exception as e:
             self.errorAbort("can't send: %s" % e)
             return
-        # if random.randrange(0,200) == 0:
         self.allSent = 1
         self.ssock.shutdown(SHUT_WR)
     def doRecv(self):
@@ -79,7 +93,6 @@ class Client:
             if self.protocol == "get" and messageFromServer != None:
                  with open("client/testFileFromServer.txt", 'a') as file:
                         file.write(messageFromServer)
-                        print(messageFromServer)
         except Exception as e:
             print "doRecv on dead socket"
             print e
@@ -87,7 +100,6 @@ class Client:
             return
         self.numRecv += n
         if self.numRecv > self.numSent and self.protocol == "put": 
-            print("inside put")
             self.errorAbort("sent=%d < recd=%d" %  (self.numSent, self.numRecv))
         if n != 0:
             return
@@ -137,9 +149,8 @@ class Client:
 def lookupSocknames(socks):
     return [ sockName(s) for s in socks ]
 
-for i in range(numClients):
-    liveClients.add(Client(AF_INET, SOCK_STREAM, (serverHost, serverPort)))
-
+for i, clientRequest in zip(range(numClients), clientRequests):
+    liveClients.add(Client(AF_INET, SOCK_STREAM, (serverHost, serverPort), clientRequest))
 
 while len(liveClients):
     rmap,wmap,xmap = {},{},{}   # socket:object mappings for select
