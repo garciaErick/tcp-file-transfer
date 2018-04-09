@@ -23,7 +23,7 @@ A client can begin a PUT or GET request
 ## Testing the application
 On the root directory there is a sample script **tcpDemo.sh** you can just run it and you will run the application and testing it with both the proxy.py and the stammerProxy.py, or run the following commands:
 
-* The following will run a sample PUT and GET through tcp: 
+* The following will run a sample run that tests the multi client capability as well as the PUT and the GET implemented through tcp: 
 
 ```sh
 python server/tcpServer.py &
