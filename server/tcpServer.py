@@ -64,10 +64,10 @@ class Fwd:
 
 
                 if self.protocol == "put" and self.contents != None:
-                    with open("server/testFileFromClient.txt", 'a') as file:
+                    with open("server/" + self.fileName, 'a') as file:
                         file.write(self.contents)
                 elif self.protocol == "get" and self.contents != None:
-                    with open("server/testFileFromServer.txt", 'rb') as file:
+                    with open("server/" + self.fileName, 'rb') as file:
                         for line in file:
                             self.contents += line
         except:

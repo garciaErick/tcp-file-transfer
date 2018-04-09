@@ -12,7 +12,7 @@ switchesVarDefaults = (
     (('-n', '--numClients'), 'numClients', "2"),
     (('-d', '--debug'), "debug", False), # boolean (set if present)
     (('-?', '-h', '--usage'), "usage", False), # boolean (set if present)
-    (('-r', '-request'), "clientRequests", "PUT|testFileFromClient.txt GET|testFileFromServer.txt"), # boolean (set if present)
+    (('-r', '-request'), "clientRequests", "--usage"), # boolean (set if present)
     )
 
 paramMap = params.parseParams(switchesVarDefaults)
