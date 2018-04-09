@@ -1,4 +1,4 @@
-# nets-tcp-file-transfer
+# TCP
 
 For this lab, you must define a file transfer protocol and implement a client and server.  The server must be 
 * single-threaded, 
@@ -13,7 +13,6 @@ Recall that unlike UDP, which is a message-oriented protocol, TCP is stream-orie
 A practical implication of this difference is that the outputs of multiple writes may be concatenated and reads may only return a portion of the data already sent.  You are strongly encouraged to test your implementation using the stammering proxy from https://github.com/robustUTEP/nets-tcp-proxy.git
 
 
-# TCP
 
 ## Client
 A client can begin a PUT or GET request
