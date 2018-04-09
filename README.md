@@ -25,7 +25,7 @@ On the root directory there is a sample script **tcpDemo.sh** you can just run i
 
 * The following will run a sample PUT and GET through tcp: 
 
-~~~~console
+```console
 python server/tcpServer.py &
 python proxy.py &
 python client/tcpClient.py -n 2 -r 'PUT|testFileFromClient.txt GET|testFileFromServer.txt'
@@ -35,4 +35,4 @@ python server/tcpServer.py &
 python stammerProxy.py &
 python client/tcpClient.py -n 2 -r 'PUT|testFileFromClient.txt GET|testFileFromServer.txt'
 pkill python
-~~~~
+```
