@@ -75,7 +75,7 @@ class Client:
         try:
             self.parseClientRequest()
             if self.protocol == "put":
-                with open("client/testFileFromClient.txt", 'rb') as file:
+                with open("client/" + self.fileName, 'rb') as file:
                     for line in file:
                         self.message += line
             self.message += "<EOM>"
@@ -173,9 +173,13 @@ while len(liveClients):
 
 
 numFailed = 0
+print("")
 for client in deadClients:
     err = client.error
     print "Client %d Succeeded=%s, Bytes sent=%d, rec'd=%d" % (client.clientIndex, not err, client.numSent, client.numRecv)
+    print "Protocol: " + client.protocol
+    print "File: " + client.fileName
+    print("")
     if err:
         numFailed += 1
 print "%d Clients failed." % numFailed

@@ -90,8 +90,6 @@ class Fwd:
             self.conn.die()
         self.checkDone()
     def checkDone(self):
-        print(self.buf)
-
         if len(self.buf) == 0 and self.inClosed:
             try:
                 self.outSock.shutdown(SHUT_WR)
